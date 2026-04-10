@@ -17,7 +17,15 @@
           label="篩選上午/下午/全部"
         />
       </v-col>
+      <v-col cols="12" md="4" class="d-flex align-center">
+        <v-checkbox
+          v-model="filterDash"
+          label="排除 '--' 資料"
+          hide-details
+        />
+      </v-col>
     </v-row>
+    
     <line-chart v-if="selectedFields.length && chartData.labels.length" :chart-data="chartData" />
     <div v-else class="mt-4" style="color:#888;">請先選擇要顯示的指標</div>
   </v-card>
@@ -32,7 +40,7 @@ const props = defineProps({
   rows: Array,
 })
 
-
+    const filterDash = ref(false)
 
 const fields = computed(() => props.headers?.filter(h => h !== '時間') || [])
 const selectedFields = ref([])
@@ -68,6 +76,11 @@ const chartData = computed(() => {
       const h = parseInt((t||'').split(':')[0], 10)
       return h >= 12 && h < 24
     })
+  }
+  if (filterDash.value) {
+    filteredRows = filteredRows.filter(row =>
+      selectedFields.value.every(field => (row[field] || '').trim() !== '--')
+    )
   }
   const sortedRows = [...filteredRows].sort((a, b) => parse(a['時間']) - parse(b['時間']))
   const labels = sortedRows.map(r => r['時間'])
